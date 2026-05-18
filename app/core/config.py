@@ -16,8 +16,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_YAlZv5QE0Mzb@ep-calm-scene-aq4w4ju9-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
     
     # Uploadcare
-    UPLOADCARE_PUBLIC_KEY: str = os.getenv("UPLOADCARE_PUBLIC_KEY", "")
-    UPLOADCARE_PRIVATE_KEY: str = os.getenv("UPLOADCARE_PRIVATE_KEY", "")
+    UPLOADCARE_PUBLIC_KEY: str = os.getenv("UPLOADCARE_PUBLIC_KEY", "b3cde786f6d5ec997925")
+    UPLOADCARE_PRIVATE_KEY: str = os.getenv("UPLOADCARE_PRIVATE_KEY", "9a949b3d009be6182fa8")
     UPLOADCARE_API_BASE_URL: str = "https://api.uploadcare.com"
     
     # Media Constraints
