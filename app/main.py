@@ -20,29 +20,17 @@ from app.chat.routes import router as chat_router
 
 app = FastAPI(title="Nexora API", version="1.0.0")
 
-# =========================
-# CORS (IMPORTANT FIX)
-# =========================
+# 🔥 TEMP CORS FIX
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://nexora-prototip-frontend.pages.dev",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# =========================
-# DB INIT
-# =========================
 Base.metadata.create_all(bind=engine)
 
-# =========================
-# ROUTES
-# =========================
 app.include_router(auth_router, prefix="/auth", tags=["Auth"])
 app.include_router(posts_router, prefix="/posts", tags=["Posts"])
 app.include_router(likes_router, prefix="/likes", tags=["Likes"])
@@ -56,9 +44,6 @@ app.include_router(hashtags_router, prefix="/hashtags", tags=["Hashtags"])
 app.include_router(feed_router, prefix="/feed", tags=["Feed"])
 app.include_router(chat_router, prefix="/chat", tags=["Chat"])
 
-# =========================
-# HEALTH CHECK
-# =========================
 @app.get("/")
 def home():
     return {"message": "Backend ishlayapti 🚀"}
