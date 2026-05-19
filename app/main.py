@@ -11,6 +11,7 @@ from app.models.notification import Notification
 from app.models.hashtag import Hashtag
 from app.models.hashtag_post import PostHashtag
 
+
 # AUTH ROUTER IMPORT QILISH SHART
 from app.auth.routes import router as auth_router
 from app.api.posts import router as posts_router
@@ -23,6 +24,7 @@ from app.api.notifications import router as notifications_router
 from app.api.search import router as search_router
 from app.api.hashtags import router as hashtags_router
 from app.api.feed import router as feed_router
+from app.chat.routes import router as chat_router
 
 app = FastAPI()
 
