@@ -1,7 +1,9 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from app.db.base import Base
 from app.db.session import engine
+
 from app.models.user import User
 from app.models.post import Post
 from app.models.like import Like
@@ -11,8 +13,7 @@ from app.models.notification import Notification
 from app.models.hashtag import Hashtag
 from app.models.hashtag_post import PostHashtag
 
-
-# AUTH ROUTER IMPORT QILISH SHART
+# routers
 from app.auth.routes import router as auth_router
 from app.api.posts import router as posts_router
 from app.api.likes import router as likes_router
@@ -28,7 +29,16 @@ from app.chat.routes import router as chat_router
 
 app = FastAPI()
 
-# DB tables create
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # frontend domain 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# DB create
 Base.metadata.create_all(bind=engine)
 
 # routers
@@ -47,4 +57,6 @@ app.include_router(feed_router)
 
 @app.get("/")
 def home():
-    return {"message": "Backend + DB ishlayapti 🚀"}
+    return {
+        "message": "Backend + DB ishlayapti 🚀"
+    }
