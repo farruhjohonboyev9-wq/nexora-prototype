@@ -7,18 +7,14 @@ from .jwt import create_token
 
 router = APIRouter()
 
-
 @router.post("/register")
 def register(data: RegisterSchema):
     db = SessionLocal()
-
     try:
-        # check existing user
         user = db.query(User).filter(User.email == data.email).first()
         if user:
             raise HTTPException(status_code=400, detail="User already exists")
 
-        # create user
         new_user = User(
             username=data.username,
             email=data.email,
@@ -41,7 +37,6 @@ def register(data: RegisterSchema):
 @router.post("/login")
 def login(data: LoginSchema):
     db = SessionLocal()
-
     try:
         user = db.query(User).filter(User.email == data.email).first()
 
@@ -54,6 +49,6 @@ def login(data: LoginSchema):
             "access_token": token,
             "token_type": "bearer"
         }
-    
+
     finally:
         db.close()
