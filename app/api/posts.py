@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, Query
 from sqlalchemy.orm import Session
+import traceback
 
 from app.db.session import SessionLocal
 from app.auth.dependencies import get_current_user
@@ -20,29 +21,6 @@ def get_db():
         yield db
     finally:
         db.close()
-
-
-# ========================
-# CURRENT USER (OPTIONAL)
-# ========================
-async def get_current_user_optional(
-    authorization: str = None,
-    db: Session = Depends(get_db)
-) -> User:
-    """Get current user if authorized, otherwise None"""
-    if not authorization:
-        return None
-    
-    try:
-        token = authorization.replace("Bearer ", "")
-        email = await get_current_user(token)
-        if email:
-            user = db.query(User).filter(User.email == email).first()
-            return user
-    except:
-        pass
-    
-    return None
 
 
 # ========================
@@ -68,22 +46,26 @@ async def create_post(
     current_user: User = Depends(get_current_user_obj),
     db: Session = Depends(get_db)
 ):
-    media_url = None
+    try:
+        media_url = None
 
-    if file:
-        upload_result = await UploadcareService.upload_file(file, current_user.id)
-        media_url = upload_result["url"]
+        if file:
+            upload_result = await UploadcareService.upload_file(file, current_user.id)
+            media_url = upload_result["url"]
 
-    post_data = PostCreate(content=content, media_url=media_url)
+        post_data = PostCreate(content=content, media_url=media_url)
+        post = PostService.create_post(db, current_user.id, post_data)
 
-    post = PostService.create_post(db, current_user.id, post_data)
-
-    return {
-        **post.__dict__,
-        "author": post.author,
-        "like_count": PostService.get_like_count(db, post.id),
-        "comment_count": PostService.get_comment_count(db, post.id)
-    }
+        return {
+            **post.__dict__,
+            "author": post.author,
+            "like_count": PostService.get_like_count(db, post.id),
+            "comment_count": PostService.get_comment_count(db, post.id)
+        }
+    except Exception as e:
+        print(f"❌ Create post error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error creating post: {str(e)}")
 
 
 # ========================
@@ -96,17 +78,22 @@ def get_feed(
     db: Session = Depends(get_db)
 ):
     """Get all posts - PUBLIC endpoint, no auth required"""
-    posts = PostService.get_all_posts(db, skip, limit)
+    try:
+        posts = PostService.get_all_posts(db, skip, limit)
 
-    return [
-        {
-            **post.__dict__,
-            "author": post.author,
-            "like_count": PostService.get_like_count(db, post.id),
-            "comment_count": PostService.get_comment_count(db, post.id)
-        }
-        for post in posts
-    ]
+        return [
+            {
+                **post.__dict__,
+                "author": post.author,
+                "like_count": PostService.get_like_count(db, post.id),
+                "comment_count": PostService.get_comment_count(db, post.id)
+            }
+            for post in posts
+        ]
+    except Exception as e:
+        print(f"❌ Get feed error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error fetching posts: {str(e)}")
 
 
 # ========================
@@ -118,14 +105,19 @@ def get_post(
     db: Session = Depends(get_db)
 ):
     """Get single post - PUBLIC endpoint, no auth required"""
-    post = PostService.get_post(db, post_id)
+    try:
+        post = PostService.get_post(db, post_id)
 
-    return {
-        **post.__dict__,
-        "author": post.author,
-        "like_count": PostService.get_like_count(db, post.id),
-        "comment_count": PostService.get_comment_count(db, post.id)
-    }
+        return {
+            **post.__dict__,
+            "author": post.author,
+            "like_count": PostService.get_like_count(db, post.id),
+            "comment_count": PostService.get_comment_count(db, post.id)
+        }
+    except Exception as e:
+        print(f"❌ Get post error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error fetching post: {str(e)}")
 
 
 # ========================
@@ -138,14 +130,19 @@ def update_post(
     current_user: User = Depends(get_current_user_obj),
     db: Session = Depends(get_db)
 ):
-    post = PostService.update_post(db, post_id, current_user.id, data)
+    try:
+        post = PostService.update_post(db, post_id, current_user.id, data)
 
-    return {
-        **post.__dict__,
-        "author": post.author,
-        "like_count": PostService.get_like_count(db, post.id),
-        "comment_count": PostService.get_comment_count(db, post.id)
-    }
+        return {
+            **post.__dict__,
+            "author": post.author,
+            "like_count": PostService.get_like_count(db, post.id),
+            "comment_count": PostService.get_comment_count(db, post.id)
+        }
+    except Exception as e:
+        print(f"❌ Update post error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error updating post: {str(e)}")
 
 
 # ========================
@@ -157,5 +154,10 @@ def delete_post(
     current_user: User = Depends(get_current_user_obj),
     db: Session = Depends(get_db)
 ):
-    PostService.delete_post(db, post_id, current_user.id)
-    return {"message": "Post deleted successfully"}
+    try:
+        PostService.delete_post(db, post_id, current_user.id)
+        return {"message": "Post deleted successfully"}
+    except Exception as e:
+        print(f"❌ Delete post error: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(status_code=500, detail=f"Error deleting post: {str(e)}")
