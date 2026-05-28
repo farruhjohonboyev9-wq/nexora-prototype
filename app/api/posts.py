@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form
+from fastapi import APIRouter, Depends, HTTPException, File, UploadFile, Form, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import SessionLocal
@@ -23,7 +23,30 @@ def get_db():
 
 
 # ========================
-# CURRENT USER
+# CURRENT USER (OPTIONAL)
+# ========================
+async def get_current_user_optional(
+    authorization: str = None,
+    db: Session = Depends(get_db)
+) -> User:
+    """Get current user if authorized, otherwise None"""
+    if not authorization:
+        return None
+    
+    try:
+        token = authorization.replace("Bearer ", "")
+        email = await get_current_user(token)
+        if email:
+            user = db.query(User).filter(User.email == email).first()
+            return user
+    except:
+        pass
+    
+    return None
+
+
+# ========================
+# CURRENT USER (REQUIRED)
 # ========================
 def get_current_user_obj(
     email: str = Depends(get_current_user),
@@ -64,15 +87,15 @@ async def create_post(
 
 
 # ========================
-# GET ALL POSTS (FEED)
+# GET ALL POSTS (PUBLIC FEED)
 # ========================
 @router.get("/", response_model=list[PostDetailResponse])
 def get_feed(
-    skip: int = 0,
-    limit: int = 20,
-    current_user: User = Depends(get_current_user_obj),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
+    """Get all posts - PUBLIC endpoint, no auth required"""
     posts = PostService.get_all_posts(db, skip, limit)
 
     return [
@@ -92,9 +115,9 @@ def get_feed(
 @router.get("/{post_id}", response_model=PostDetailResponse)
 def get_post(
     post_id: int,
-    current_user: User = Depends(get_current_user_obj),
     db: Session = Depends(get_db)
 ):
+    """Get single post - PUBLIC endpoint, no auth required"""
     post = PostService.get_post(db, post_id)
 
     return {
